@@ -45,7 +45,7 @@
                             <th>Id</th>
                             <th>{{ __('messages.image') }}</th>
                             <th>{{ __('messages.category_title') }}</th>
-                            <th class="text-center">{{ __('messages.sub_category_first') }}</th>
+                            {{--  <th class="text-center">{{ __('messages.sub_category_first') }}</th>  --}}
                             <th class="text-center">{{ __('messages.cat_options') }}</th>
                             <th class="text-center">{{ __('messages.products') }}</th>
                             @if(Auth::user()->update_data)
@@ -63,7 +63,7 @@
                                         src="https://res.cloudinary.com/carsads2021/image/upload/w_100,q_100/v1581928924/{{ $category->image }}"/>
                                 </td>
                                 <td>{{ app()->getLocale() == 'en' ? $category->title_en : $category->title_ar }}</td>
-                                <td class="text-center blue-color">
+                                {{--  <td class="text-center blue-color">
                                     @if ($data['prevent_next_level'])
                                         {{ __('messages.category_has_products_add') }}
                                     @else
@@ -81,7 +81,7 @@
                                             </div>
                                         </a>
                                     @endif
-                                </td>
+                                </td>  --}}
                                 <td class="text-center blue-color">
                                     <a href="{{route('cat_options.show',$category->id)}}">
                                         <div class="">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Category;
+use App\Category_option;
 use App\ContactUs;
 use App\Conversation;
 use App\Participant;
@@ -37,7 +38,7 @@ class ProductController extends Controller
     {
         $this->middleware('auth:api', ['except' => ['ad_owner_info', 'current_ads', 'ended_ads', 'max_min_price', 'filter', 'offer_ads', 'republish_ad',
             'areas', 'cities', 'third_step_excute_pay', 'save_third_step_with_money', 'update_ad', 'select_ad_data', 'delete_my_ad',
-            'save_third_step', 'save_second_step', 'save_first_step', 'make_comment', 'get_all_comments','getdetails', 'last_seen', 'getoffers', 'getproducts', 'getsearch', 'getFeatureOffers']]);
+            'save_third_step', 'save_second_step', 'save_first_step', 'make_comment', 'get_all_comments', 'getdetails', 'last_seen', 'getoffers', 'getproducts', 'getsearch', 'getFeatureOffers']]);
         //        --------------------------------------------- begin scheduled functions --------------------------------------------------------
 
         $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
@@ -238,7 +239,12 @@ class ProductController extends Controller
                 $feature_data[$key]['value'] = $feature->target_id;
             } else if ($feature->type == 'option') {
                 $feature_data[$key]['title'] = $feature->Option->title;
-                $feature_data[$key]['value'] = $feature->Option_value->value;
+                $target_data = Category_option_value::where('id', $feature->target_id)->first();
+                if ($request->lang == 'ar')
+                    $feature_data[$key]['value'] = $target_data->value_ar;
+                else {
+                    $feature_data[$key]['value'] = $target_data->value_en;
+                }
             }
         }
         if ($user) {
@@ -260,7 +266,7 @@ class ProductController extends Controller
             $data->conversation_id = 0;
         }
         $date = date_create($data->date);
-        $data->comments_count = Product_comment::where('product_id',$data->id)->where('status','accepted')->get()->count();
+        $data->comments_count = Product_comment::where('product_id', $data->id)->where('status', 'accepted')->get()->count();
         $data->date = date_format($date, 'd M Y');
         $data->time = date_format($date, 'g:i a');
         $data->likes = Favorite::where('product_id', $data->id)->count();
@@ -323,19 +329,20 @@ class ProductController extends Controller
             }
         }
         $views = Product_view::where('product_id', $data->id)->count();
-        $comments = Product_comment::where('status','accepted')->with('User')->select('id','user_id','product_id','comment','created_at')->where('product_id', $data->id)->take(3)->get();
+        $comments = Product_comment::where('status', 'accepted')->with('User')->select('id', 'user_id', 'product_id', 'comment', 'created_at')->where('product_id', $data->id)->take(3)->get();
 
         $response = APIHelpers::createApiResponse(false, 200, '', '', array('product' => $data,
-            'features' => $feature_data, 'user_other_ads' => $user_other_ads, 'related' => $related, 'views' => $views,'comments'=>$comments), $request->lang);
+            'features' => $feature_data, 'user_other_ads' => $user_other_ads, 'related' => $related, 'views' => $views, 'comments' => $comments), $request->lang);
         return response()->json($response, 200);
     }
 
-    public function get_all_comments(Request $request,$id)
+    public function get_all_comments(Request $request, $id)
     {
-        $data = Product_comment::where('status','accepted')->where('product_id', $id)->with('User')->select('id','user_id','product_id','comment','created_at')->get();
+        $data = Product_comment::where('status', 'accepted')->where('product_id', $id)->with('User')->select('id', 'user_id', 'product_id', 'comment', 'created_at')->get();
         $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
         return response()->json($response, 200);
     }
+
     public function getoffers(Request $request)
     {
         $products = Product::where('offer', 1)->select('id', 'title', 'price', 'type', 'publication_date as date')->orderBy('publication_date', 'DESC')->where('status', 1)->where('deleted', 0)->where('publish', 'Y')->simplePaginate(12);
@@ -573,8 +580,8 @@ class ProductController extends Controller
                 ->where('deleted', 0)
                 ->where('price', '!=', null)
                 ->orderBy('price', 'asc')->get();
-//            $data['max'] = 0;
-//            $data['min'] = 0;
+            $data['max'] = 0;
+            $data['min'] = 0;
         } else {
             $data['max'] = $result->last()->price;
             $data['min'] = $result->first()->price;
@@ -713,20 +720,19 @@ class ProductController extends Controller
                     if ($request->options != null) {
                         foreach ($request->options as $key => $option) {
                             if ($option['option_value'] != null) {
-                                if (is_numeric($option['option_value'])) {
-                                    $option_values = Category_option_value::where('id', $option['option_value'])->first();
-                                    if ($option_values != null) {
+                                $selected_option = Category_option::with('Values')->where('id', $option['option_id'])->first();
+                                if ($option['option_value'] == 0 && count($selected_option->Values) > 0) {
+                                } else {
+                                    if (count($selected_option->Values) > 0) {
                                         $feature_data['type'] = 'option';
                                     } else {
                                         $feature_data['type'] = 'manual';
                                     }
-                                } else {
-                                    $feature_data['type'] = 'manual';
+                                    $feature_data['product_id'] = $ad_data->id;
+                                    $feature_data['target_id'] = $option['option_value'];
+                                    $feature_data['option_id'] = $option['option_id'];
+                                    Product_feature::create($feature_data);
                                 }
-                                $feature_data['product_id'] = $ad_data->id;
-                                $feature_data['target_id'] = $option['option_value'];
-                                $feature_data['option_id'] = $option['option_id'];
-                                Product_feature::create($feature_data);
                             }
                         }
                     }
@@ -774,7 +780,7 @@ class ProductController extends Controller
             if ($user != null) {
                 $input['user_id'] = $user->id;
                 $comment = Product_comment::create($input);
-                $data = Product_comment::with('User')->select('id','user_id','product_id','comment','created_at')->where('id',$comment->id)->first();
+                $data = Product_comment::with('User')->select('id', 'user_id', 'product_id', 'comment', 'created_at')->where('id', $comment->id)->first();
                 $response = APIHelpers::createApiResponse(false, 200, 'your ad comment added successfully wait admin to approve', ' تم أنشاء التعليق بنجاح انتظر الادارة للموافقه', $data, $request->lang);
                 return response()->json($response, 200);
             } else {
@@ -784,23 +790,23 @@ class ProductController extends Controller
         }
     }
 
-    public function delete_my_comment(Request $request,$id)
+    public function delete_my_comment(Request $request, $id)
     {
         $user = auth()->user();
         if ($user != null) {
             $input['user_id'] = $user->id;
-            $comment = Product_comment::where('id',$id)->first();
-            if($comment){
-                if($comment->user_id == $user->id) {
-                    Product_comment::where('id',$id)->delete();
+            $comment = Product_comment::where('id', $id)->first();
+            if ($comment) {
+                if ($comment->user_id == $user->id) {
+                    Product_comment::where('id', $id)->delete();
                     $response = APIHelpers::createApiResponse(false, 200, 'deleted successfully', 'تم الحذف بنجاح', null, $request->lang);
                     return response()->json($response, 200);
-                }else{
-                    $response = APIHelpers::createApiResponse(true, 406, 'you not comment owner','انت لست صاحب التعليق', null, $request->lang);
+                } else {
+                    $response = APIHelpers::createApiResponse(true, 406, 'you not comment owner', 'انت لست صاحب التعليق', null, $request->lang);
                     return response()->json($response, 406);
                 }
-            }else{
-                $response = APIHelpers::createApiResponse(true, 406, 'no comment selected','لم يتم اختيار تعليق', null, $request->lang);
+            } else {
+                $response = APIHelpers::createApiResponse(true, 406, 'no comment selected', 'لم يتم اختيار تعليق', null, $request->lang);
                 return response()->json($response, 406);
             }
         } else {
@@ -1156,12 +1162,12 @@ class ProductController extends Controller
         $ads['ended_ads'] = Product::where('status', 2)
             ->where('deleted', 0)
             ->where('user_id', auth()->user()->id)
-            ->select('id', 'title', 'price', 'main_image','created_at','pin','category_id')
+            ->select('id', 'title', 'price', 'main_image', 'created_at', 'pin', 'category_id')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($data) {
                 $data->price = (string)$data->price;
-                $data->views = Product_view::where('product_id', $data->id )->get()->count();
+                $data->views = Product_view::where('product_id', $data->id)->get()->count();
                 $data->time = $data->created_at->format('Y-m-d');
                 $data->total_time = $data->created_at->format('Y-m-d g:i a');
 //                $data->created_at =  Carbon::createFromFormat('Y-m-d H:i:s', $data->created_at)->translatedformat('Y-m-d');
@@ -1171,18 +1177,18 @@ class ProductController extends Controller
             ->where('publish', 'Y')
             ->where('deleted', 0)
             ->where('user_id', auth()->user()->id)
-            ->select('id', 'title', 'price', 'main_image','created_at','pin','category_id')
+            ->select('id', 'title', 'price', 'main_image', 'created_at', 'pin', 'category_id')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($data) {
                 $data->price = (string)$data->price;
-                $data->views = Product_view::where('product_id', $data->id )->get()->count();
+                $data->views = Product_view::where('product_id', $data->id)->get()->count();
                 $data->time = $data->created_at->format('Y-m-d');
                 $data->total_time = $data->created_at->format('Y-m-d g:i a');
                 return $data;
             });
-            $response = APIHelpers::createApiResponse(false, 200, '', '', $ads, $request->lang);
-            return response()->json($response, 200);
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $ads, $request->lang);
+        return response()->json($response, 200);
     }
 
     public function ended_ads(Request $request)
@@ -1190,12 +1196,12 @@ class ProductController extends Controller
         $data = Product::where('status', 2)
             ->where('deleted', 0)
             ->where('user_id', auth()->user()->id)
-            ->select('id', 'title', 'price', 'main_image','created_at','pin','category_id')
+            ->select('id', 'title', 'price', 'main_image', 'created_at', 'pin', 'category_id')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($data) {
                 $data->price = (string)$data->price;
-                $data->views = Product_view::where('product_id', $data->id )->get()->count();
+                $data->views = Product_view::where('product_id', $data->id)->get()->count();
                 $data->time = $data->created_at->format('Y-m-d');
                 return $data;
             });
@@ -1214,12 +1220,12 @@ class ProductController extends Controller
             ->where('publish', 'Y')
             ->where('deleted', 0)
             ->where('user_id', auth()->user()->id)
-            ->select('id', 'title', 'price', 'main_image','created_at','pin','category_id')
+            ->select('id', 'title', 'price', 'main_image', 'created_at', 'pin', 'category_id')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($data) {
                 $data->price = (string)$data->price;
-                $data->views = Product_view::where('product_id', $data->id )->get()->count();
+                $data->views = Product_view::where('product_id', $data->id)->get()->count();
                 $data->time = $data->created_at->format('Y-m-d');
                 return $data;
             });
@@ -1294,14 +1300,14 @@ class ProductController extends Controller
             $data[$inc]['image'] = $row->main_image;
             $data[$inc]['price'] = (string)$row->price;
             $data[$inc]['description'] = $row->description;
-            if($user){
+            if ($user) {
                 $favorite = Favorite::where('user_id', $user->id)->where('product_id', $row->id)->first();
                 if ($favorite) {
                     $data[$inc]['favorite'] = true;
                 } else {
                     $data[$inc]['favorite'] = false;
                 }
-            }else{
+            } else {
                 $data[$inc]['favorite'] = false;
             }
             $data[$inc]['views'] = Product_view::where('product_id', $row->id)->count();
@@ -1611,20 +1617,19 @@ class ProductController extends Controller
                 Product_feature::where('product_id', $id)->delete();
                 foreach ($request->options as $key => $option) {
                     if ($option['option_value'] != null) {
-                        if (is_numeric($option['option_value'])) {
-                            $option_values = Category_option_value::where('id', $option['option_value'])->first();
-                            if ($option_values != null) {
+                        $selected_option = Category_option::with('Values')->where('id', $option['option_id'])->first();
+                        if ($option['option_value'] == 0 && count($selected_option->Values) > 0) {
+                        } else {
+                            if (count($selected_option->Values) > 0) {
                                 $feature_data['type'] = 'option';
                             } else {
                                 $feature_data['type'] = 'manual';
                             }
-                        } else {
-                            $feature_data['type'] = 'manual';
+                            $feature_data['product_id'] = $id;
+                            $feature_data['target_id'] = $option['option_value'];
+                            $feature_data['option_id'] = $option['option_id'];
+                            Product_feature::create($feature_data);
                         }
-                        $feature_data['product_id'] = $id;
-                        $feature_data['target_id'] = $option['option_value'];
-                        $feature_data['option_id'] = $option['option_id'];
-                        Product_feature::create($feature_data);
                     }
                 }
             }
@@ -1646,12 +1651,12 @@ class ProductController extends Controller
         if ($request->lang == 'en') {
             $cities = City::with('Areas')
                 ->where('deleted', '0')
-                ->select('id', 'title_en as title')->OrderBy('created_at','desc')
+                ->select('id', 'title_en as title')->OrderBy('created_at', 'desc')
                 ->get();
         } else {
             $cities = City::with('Areas')
                 ->where('deleted', '0')
-                ->select('id', 'title_ar as title')->OrderBy('created_at','desc')
+                ->select('id', 'title_ar as title')->OrderBy('created_at', 'desc')
                 ->get();
         }
         $response = APIHelpers::createApiResponse(false, 200, '', '', array('cities' => $cities), $request->lang);

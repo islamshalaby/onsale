@@ -1,12 +1,12 @@
 @extends('admin.app')
-@section('title' , __('messages.cat_options'))
+@section('title' , __('messages.sub_cat_options'))
 @section('content')
     <div id="tableSimple" class="col-lg-12 col-12 layout-spacing">
         <div class="statbox widget box box-shadow">
             <div class="widget-header">
                 <div class="row">
                     <div class="col-xl-12 col-md-12 col-sm-12 col-12">
-                        <h4>{{ __('messages.cat_options') }}</h4>
+                        <h4>{{ __('messages.sub_cat_options') }} ( {{ $main_category->title }} )</h4>
                     </div>
                 </div>
                 @if(Auth::user()->add_data)
@@ -29,7 +29,6 @@
                             <th class="text-center">{{ __('messages.image') }}</th>
                             <th>{{ __('messages.name') }}</th>
                             <th class="text-center">{{ __('messages.list_values') }}</th>
-                            <th class="text-center">{{ __('messages.sub_cat_options') }}</th>
                             @if(Auth::user()->update_data)
                                 <th class="text-center">{{ __('messages.edit') }}</th>@endif
                             @if(Auth::user()->delete_data)
@@ -46,11 +45,8 @@
                                 </td>
                                 <td>{{ app()->getLocale() == 'en' ? $row->title_en : $row->title_ar }}</td>
                                 <td class="text-center blue-color"><a
-                                        href="{{ route('options_values.show', $row->id) }}"><i
+                                        href="{{ route('sub_option_values.index', $row->id) }}"><i
                                             class="far fa-eye"></i></a></td>
-                                <td class="text-center blue-color"><a
-                                    href="{{route('sub_options.index',$row->id)}}"><i
-                                    class="far fa-eye"></i></a></td>
                                 @if(Auth::user()->update_data)
                                     <td class="text-center blue-color"><a
                                             href="{{route('cat_options.edit',$row->id)}}"><i
@@ -87,9 +83,10 @@
                         </svg>
                     </button>
                 </div>
-                <form action="{{route('cat_options.store')}}" method="post" enctype="multipart/form-data">
+                <form action="{{route('post.sub_options')}}" method="post" enctype="multipart/form-data">
                     @csrf
-                    <input required type="hidden" name="cat_id" value="{{$id}}">
+                    <input required type="hidden" name="cat_id" value="{{$main_category->cat_id}}">
+                    <input required type="hidden" name="parent_id" value="{{$id}}">
                     <div class="modal-body">
                         <div class="custom-file-container" data-upload-id="myFirstImage">
                             <label>{{ __('messages.upload') }} ({{ __('messages.single_image') }}) <a

@@ -137,10 +137,20 @@ Route::group(['middleware'=>'language','prefix' => "admin-panel",'namespace' => 
 
     //cat_options
     Route::resource('cat_options' , 'categories\CategoryOptionsController');
+    Route::get('sub_options/{id}' , 'categories\CategoryOptionsController@show_sub_obtions')->name('sub_options.index');
+    Route::post('sub_options' , 'categories\CategoryOptionsController@store_sub_option')->name('post.sub_options');
+    
     Route::get('cat_options/deleted/{id}' , 'categories\CategoryOptionsController@destroy')->name('cat_options.deleted');
     Route::get('cat_options/edit/{id}' , 'categories\CategoryOptionsController@edit')->name('cat_options.edit');
     Route::post('cat_options/update/new' , 'categories\CategoryOptionsController@update')->name('cat_options.update_new');
     Route::resource('options_values' , 'categories\OptionsValuesController');
+    Route::get('sub_option_values/{id}' , 'categories\OptionsValuesController@show_sub_options')->name('sub_option_values.index');
+    Route::post('sub_option_values' , 'categories\OptionsValuesController@store_sub_options')->name('sub_option_values.post.index');
+    Route::get('sub_option_values/edit/{id}' , 'categories\OptionsValuesController@edit_sub_options')->name('sub_option_values.edit');
+    Route::post('sub_option_values/update/{id}' , 'categories\OptionsValuesController@update_sub_options')->name('sub_option_values.update');
+    
+    
+    
     Route::get('options_values/create_new/{option_id}' , 'categories\OptionsValuesController@create')->name('options_values.create_new');
     Route::get('options_values/deleted/{id}' , 'categories\OptionsValuesController@destroy')->name('options_values.deleted');
     Route::post('options_values/update_new/{id}' , 'categories\OptionsValuesController@update')->name('options_values.update.new');

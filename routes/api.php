@@ -158,6 +158,10 @@ use Illuminate\Http\Request;
     Route::get('/ad/get_marka_types/{marka_id}/{lang}/{v}' , 'MarkaController@get_marka_types');
     Route::get('/ad/get_type_model/{marka_type_id}/{lang}/{v}' , 'MarkaController@get_type_model');
     Route::get('/ad/category_options/{category}/{lang}/{v}' , 'CategoryController@getCategoryOptions');
+    Route::get('/ad/main_category_options/{category}/{lang}/{v}' , 'CategoryController@getMainCategoryOptions');
+    Route::get('/ad/sub_category_options/{option_id}/{value_id}/{lang}/{v}' , 'CategoryController@getSubOptions');
+    
+    
     Route::get('/ad/sub_category_options/{category}/{sub_category}/{lang}/{v}' , 'CategoryController@getSubCategoryOptions');
     Route::get('/ad/sub_two_category_options/{category}/{sub_category}/{sub_two_category}/{lang}/{v}' , 'CategoryController@getSubTwoCategoryOptions');
 

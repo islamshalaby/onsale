@@ -148,7 +148,7 @@
         'watsapp' => "Whatsapp",
         'post_address' => "post address",
         'fax' => "fax",
-        'cat_options' => "category options",
+        'cat_options' => "Main options for category",
         'list_values' => "list of values",
         'value_ar' => "value name in arabic",
         'value_en' => "value name in english",
@@ -330,6 +330,8 @@
         "product_images" => "Product Images",
         "show_buy" => "Show Buy Button",
         "category_has_products_add" => "One of these categories level has products",
+        "sub_cat_options" => "Sub options",
+        "main_value" => "Main value"
 
     ];
 ?>

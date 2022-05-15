@@ -12,8 +12,15 @@ class CategoryOptionsController extends AdminController{
     }
 
     public function show($id){
-        $data = Category_option::where('deleted','0')->where('cat_id',$id)->where('cat_type','category')->get();
+        $data = Category_option::where('deleted','0')->where('parent_id', 0)->where('cat_id',$id)->where('cat_type','category')->get();
         return view('admin.categories.category_options.index',compact('data','id'));
+    }
+
+    public function show_sub_obtions($id) {
+        $data = Category_option::where('deleted','0')->where('parent_id', $id)->where('cat_type','category')->get();
+        $main_category = Category_option::where('deleted','0')->where('id', $id)->select('id', 'title_' . \Lang::getLocale() . ' as title', 'cat_id')->first();
+        
+        return view('admin.categories.category_options.sub_options.index',compact('data','id', 'main_category'));
     }
 
     public function store(Request $request){
@@ -37,6 +44,30 @@ class CategoryOptionsController extends AdminController{
         session()->flash('success', trans('messages.added_s'));
         return back();
     }
+
+    public function store_sub_option(Request $request){
+        $data = $this->validate(\request(),
+            [
+                'cat_id' => 'required',
+                'parent_id' => 'required',
+                'image' => 'required',
+                'title_ar' => 'required',
+                'title_en' => 'required',
+                'is_required' => 'required'
+            ]);
+
+        $image_name = $request->file('image')->getRealPath();
+        Cloudder::upload($image_name, null);
+        $imagereturned = Cloudder::getResult();
+        $image_id = $imagereturned['public_id'];
+        $image_format = $imagereturned['format'];
+        $image_new_name = $image_id.'.'.$image_format;
+        $data['image'] = $image_new_name ;
+        Category_option::create($data);
+        session()->flash('success', trans('messages.added_s'));
+        return back();
+    }
+
     public function update(Request $request){
         $selected_option = Category_option::where('id',$request->id)->first();
         $data = $this->validate(\request(),

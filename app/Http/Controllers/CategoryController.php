@@ -23,7 +23,7 @@ class CategoryController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['getSubTwoCategoryOptions', 'getSubCategoryOptions', 'show_six_cat', 'getCategoryOptions', 'show_five_cat', 'show_four_cat', 'show_third_cat', 'show_second_cat', 'show_first_cat', 'getcategories', 'getAdSubCategories', 'get_sub_categories_level2', 'get_sub_categories_level3', 'get_sub_categories_level4', 'get_sub_categories_level5', 'getproducts']]);
+        $this->middleware('auth:api', ['except' => ['getSubTwoCategoryOptions', 'getSubOptions', 'getSubCategoryOptions', 'show_six_cat', 'getCategoryOptions', 'show_five_cat', 'show_four_cat', 'show_third_cat', 'show_second_cat', 'show_first_cat', 'getcategories', 'getAdSubCategories', 'get_sub_categories_level2', 'get_sub_categories_level3', 'get_sub_categories_level4', 'get_sub_categories_level5', 'getproducts', 'getMainCategoryOptions']]);
     }
 
     // get cats - sub cats with next level
@@ -121,7 +121,7 @@ class CategoryController extends Controller
         
 
         $lang = $request->lang;
-        $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)->where('category_id', $request->category_id)->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(30);
+        $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)->where('category_id', $request->category_id)->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = (string)$products[$i]['price'];
             $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
@@ -216,7 +216,7 @@ class CategoryController extends Controller
 
             $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)->whereIn('sub_category_id', $sub_category_ids)->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
         } else {
-            $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)->where('sub_category_id', $request->sub_category_id)->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(30);
+            $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)->where('sub_category_id', $request->sub_category_id)->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
         }
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = (string)$products[$i]['price'];
@@ -339,7 +339,7 @@ class CategoryController extends Controller
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
 
-        $products = $products->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(30);
+        $products = $products->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
 
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = (string)$products[$i]['price'];
@@ -489,7 +489,7 @@ class CategoryController extends Controller
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
 
-        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(30);
+        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = (string)$products[$i]['price'];
             $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
@@ -608,7 +608,7 @@ class CategoryController extends Controller
         if ($request->sub_category_level1_id != 0) {
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
-        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(30);
+        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = (string)$products[$i]['price'];
             $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
@@ -703,7 +703,7 @@ class CategoryController extends Controller
         if ($request->sub_category_level4_id != 0) {
             $products = $products->where('sub_category_four_id', $request->sub_category_level4_id);
         }
-        $products = $products->where('sub_category_five_id', $request->sub_category_id)->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->where('publish', 'Y')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(30);
+        $products = $products->where('sub_category_five_id', $request->sub_category_id)->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->where('publish', 'Y')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = (string)$products[$i]['price'];
             $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
@@ -874,6 +874,45 @@ class CategoryController extends Controller
                         $data['options'][$i]['type'] = 'select';
                         $data['options'][$i]['values'] = $optionValues;
                     }
+                }
+            }
+        }
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
+        return response()->json($response, 200);
+    }
+
+    // get category options
+    public function getMainCategoryOptions(Request $request, Category $category)
+    {
+        $data['options'] = Category_option::where('cat_id', $category['id'])->where('cat_type', 'category')->where('deleted', '0')->where('parent_id', 0)->select('id as option_id', "title_$request->lang as title", 'is_required', 'parent_id')->get();
+            
+        if (count($data['options']) > 0) {
+            for ($i = 0; $i < count($data['options']); $i++) {
+                $data['options'][$i]['type'] = 'input';
+                $optionValues = Category_option_value::where('option_id', $data['options'][$i]['option_id'])->where('deleted', '0')->select('id as value_id', "value_$request->lang as value")->get();
+                if (count($optionValues) > 0) {
+
+                    $data['options'][$i]['type'] = 'select';
+                    $data['options'][$i]['values'] = $optionValues;
+                }
+            }
+        }
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
+        return response()->json($response, 200);
+    }
+
+    // get sub options
+    public function getSubOptions(Request $request)
+    {
+        $data['options'] = Category_option::where('parent_id', $request->option_id)->where('cat_type', 'category')->where('deleted', '0')->select('id as option_id', "title_$request->lang as title", 'is_required', 'parent_id')->get();
+            
+        if (count($data['options']) > 0) {
+            for ($i = 0; $i < count($data['options']); $i++) {
+                $data['options'][$i]['type'] = 'input';
+                $optionValues = Category_option_value::where('option_id', $data['options'][$i]['option_id'])->where('parent_id', $request->value_id)->where('deleted', '0')->select('id as value_id', "value_$request->lang as value", 'parent_id')->get();
+                if (count($optionValues) > 0) {
+                    $data['options'][$i]['type'] = 'select';
+                    $data['options'][$i]['values'] = $optionValues;
                 }
             }
         }
