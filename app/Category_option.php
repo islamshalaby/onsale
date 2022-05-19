@@ -15,4 +15,8 @@ class Category_option extends Model
     public function parent() {
         return $this->belongsTo('App\Category_option', 'parent_id');
     }
+
+    public function sub_options() {
+        return $this->hasMany('App\Category_option', 'parent_id');
+    }
 }

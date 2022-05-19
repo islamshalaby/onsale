@@ -15,9 +15,13 @@ class OptionsValuesController extends AdminController{
         return view('admin.categories.category_options.option_values.index',compact('data','option_id'));
     }
 
-    public function show_sub_options($id){
+    public function show_sub_options(Request $request, $id){
         $option_id = $id;
-        $data = Category_option_value::where('option_id',$id)->where('deleted','0')->get();
+        $data = Category_option_value::where('option_id',$id);
+        if (isset($request->main_value)) {
+            $data = $data->where('parent_id', $request->main_value);
+        }
+        $data = $data->where('deleted','0')->get();
         $option = Category_option::where('id', $id)->first();
         $main_option_values = Category_option_value::where('option_id', $option->parent_id)->where('deleted', '0')->get();
         
@@ -53,7 +57,7 @@ class OptionsValuesController extends AdminController{
             ]);
         Category_option_value::create($data);
         session()->flash('success', trans('messages.added_s'));
-        return redirect( route('sub_option_values.index',$request->option_id));
+        return redirect()->back();
     }
 
     public function edit($id)
@@ -93,7 +97,7 @@ class OptionsValuesController extends AdminController{
         $option_value->value_ar = $request->value_ar;
         $option_value->value_en = $request->value_en;
         $option_value->save();
-        return redirect( route('sub_option_values.index',$option_value->option_id));
+        return redirect()->back();
     }
 
     /**

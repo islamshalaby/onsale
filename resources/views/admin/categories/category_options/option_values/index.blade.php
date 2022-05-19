@@ -25,6 +25,7 @@
                         <tr>
                             <th>Id</th>
                             <th>{{ __('messages.name') }}</th>
+                            <th>{{ __('messages.sub_cat_options') }}</th>
                             @if(Auth::user()->update_data)
                                 <th class="text-center">{{ __('messages.edit') }}</th>@endif
                             @if(Auth::user()->delete_data)
@@ -37,6 +38,15 @@
                             <tr>
                                 <td><?=$i;?></td>
                                 <td>{{ app()->getLocale() == 'en' ? $row->value_en : $row->value_ar }}</td>
+                                <td>
+                                    @if (count($row->option->sub_options) > 0)
+                                        @foreach ($row->option->sub_options as $sub_option)
+                                            <a target="_blank" href="{{ route('sub_option_values.index', ['id' => $sub_option->id, 'main_value' => $row->id]) }}">
+                                                <span class="badge outline-badge-primary">{{ app()->getLocale() == 'en' ? $sub_option->title_en : $sub_option->title_ar }}</span>
+                                            </a>
+                                        @endforeach
+                                    @endif
+                                </td>
                                 @if(Auth::user()->update_data)
                                     <td class="text-center blue-color"><a
                                             href="{{route('options_values.edit',$row->id)}}"><i class="far fa-edit"></i></a>

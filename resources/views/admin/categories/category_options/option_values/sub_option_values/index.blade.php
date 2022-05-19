@@ -6,7 +6,11 @@
             <div class="widget-header">
                 <div class="row">
                     <div class="col-xl-12 col-md-12 col-sm-12 col-12">
-                        <h4>{{ __('messages.list_values') }}</h4>
+                        <h4>{{ __('messages.list_values') }} 
+                            @if (Request::get('main_value') && count($data) > 0)
+                                ( {{app()->getLocale() == 'en' ? $data[0]->parent->value_en : $data[0]->parent->value_ar }} )
+                            @endif
+                        </h4>
                     </div>
                 </div>
                 <div class="row">
@@ -79,6 +83,9 @@
                     @csrf
                     <input required type="hidden" name="option_id" value="{{$option_id}}" class="form-control">
                     <div class="modal-body">
+                        @if (Request::get('main_value'))
+                        <input type="hidden" name="parent_id" value="{{ Request::get('main_value') }}" />
+                        @else
                         <div class="form-group" id="sub_cat_cont">
                             <label for="sel1">{{ __('messages.main_value') }}</label>
                             <select required class="form-control" name="parent_id" id="cmb_sub_cat">
@@ -92,6 +99,8 @@
                                 @endforeach
                             </select>
                         </div>
+                        @endif
+                        
                         <div class="form-group mb-4">
                             <label for="title_ar">{{ __('messages.name_ar') }}</label>
                             <input required type="text" name="value_ar" class="form-control">
