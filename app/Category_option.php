@@ -17,6 +17,6 @@ class Category_option extends Model
     }
 
     public function sub_options() {
-        return $this->hasMany('App\Category_option', 'parent_id');
+        return $this->hasMany('App\Category_option', 'parent_id')->where('deleted', '0');
     }
 }
