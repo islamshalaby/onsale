@@ -107,6 +107,9 @@ use Illuminate\Http\Request;
     // products last level
     Route::get('/products/last-level/{sub_category_id}/{lang}/{v}' , 'CategoryController@getproducts')->middleware('checkguest');
 
+    Route::get('/products/{lang}/{v}' , 'CategoryController@get_category_products')->middleware('checkguest');
+    
+
     // get home data
     Route::get('/home/{lang}/{v}' , 'HomeController@gethome')->middleware('checkguest');
 
@@ -160,6 +163,7 @@ use Illuminate\Http\Request;
     Route::get('/ad/category_options/{category}/{lang}/{v}' , 'CategoryController@getCategoryOptions');
     Route::get('/ad/main_category_options/{category}/{lang}/{v}' , 'CategoryController@getMainCategoryOptions');
     Route::get('/ad/sub_category_options/{option_id}/{value_id}/{lang}/{v}' , 'CategoryController@getSubOptions');
+    Route::get('/ad/main_options/sub_category_options/{lang}/{v}' , 'CategoryController@getSubOptionsByMainOptions');
     
     
     Route::get('/ad/sub_category_options/{category}/{sub_category}/{lang}/{v}' , 'CategoryController@getSubCategoryOptions');

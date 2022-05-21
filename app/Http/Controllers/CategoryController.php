@@ -23,7 +23,7 @@ class CategoryController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['getSubTwoCategoryOptions', 'getSubOptions', 'getSubCategoryOptions', 'show_six_cat', 'getCategoryOptions', 'show_five_cat', 'show_four_cat', 'show_third_cat', 'show_second_cat', 'show_first_cat', 'getcategories', 'getAdSubCategories', 'get_sub_categories_level2', 'get_sub_categories_level3', 'get_sub_categories_level4', 'get_sub_categories_level5', 'getproducts', 'getMainCategoryOptions']]);
+        $this->middleware('auth:api', ['except' => ['getSubTwoCategoryOptions', 'getSubOptions', 'getSubCategoryOptions', 'show_six_cat', 'getCategoryOptions', 'show_five_cat', 'show_four_cat', 'show_third_cat', 'show_second_cat', 'show_first_cat', 'getcategories', 'getAdSubCategories', 'get_sub_categories_level2', 'get_sub_categories_level3', 'get_sub_categories_level4', 'get_sub_categories_level5', 'getproducts', 'getMainCategoryOptions', 'get_category_products', 'getSubOptionsByMainOptions']]);
     }
 
     // get cats - sub cats with next level
@@ -733,6 +733,62 @@ class CategoryController extends Controller
         $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
         return response()->json($response, 200);
     }
+
+    public function get_category_products(Request $request) {
+        $lang = $request->lang;
+        $validator = Validator::make($request->all(), [
+            'category_id' => 'required|array'
+        ]);
+
+        if ($validator->fails()) {
+            $response = APIHelpers::createApiResponse(true, 406, 'بعض الحقول مفقودة', 'بعض الحقول مفقودة', null, $request->lang);
+            return response()->json($response, 406);
+        }
+
+        $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0);
+
+        if ($request->category_id && $request->category_id != 0) {
+            $products = $products->where('category_id', $request->category_id);
+        }
+
+        if ($request->options && count($request->options) > 0) {
+            $products->whereHas('Features', function ($q) use ($request) {
+                $q->whereIn('target_id', $request->options);
+            });
+        }
+
+        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->where('publish', 'Y')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
+
+        for ($i = 0; $i < count($products); $i++) {
+            $products[$i]['price'] = (string)$products[$i]['price'];
+            $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
+            $products[$i]['views'] = $views;
+            $user = auth()->user();
+            if ($user) {
+                $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+                if ($favorite) {
+                    $products[$i]['favorite'] = true;
+                } else {
+                    $products[$i]['favorite'] = false;
+                }
+                $conversation = Participant::where('ad_product_id', $products[$i]['id'])->where('user_id', $user->id)->first();
+                if ($conversation == null) {
+                    $products[$i]['conversation_id'] = 0;
+                } else {
+                    $products[$i]['conversation_id'] = $conversation->conversation_id;
+                }
+            } else {
+                $products[$i]['favorite'] = false;
+                $products[$i]['conversation_id'] = 0;
+            }
+            $month = $products[$i]['created_at']->format('F');
+            $products[$i]['time'] = $products[$i]['created_at']->format('Y-m-d');
+        }
+        $data['products'] = $products;
+
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
+        return response()->json($response, 200);
+    }
     //nasser code
     // get ad categories for create ads
     public function show_first_cat(Request $request)
@@ -905,11 +961,41 @@ class CategoryController extends Controller
     public function getSubOptions(Request $request)
     {
         $data['options'] = Category_option::where('parent_id', $request->option_id)->where('cat_type', 'category')->where('deleted', '0')->select('id as option_id', "title_$request->lang as title", 'is_required', 'parent_id')->get();
-            
+        
         if (count($data['options']) > 0) {
             for ($i = 0; $i < count($data['options']); $i++) {
                 $data['options'][$i]['type'] = 'input';
                 $optionValues = Category_option_value::where('option_id', $data['options'][$i]['option_id'])->where('parent_id', $request->value_id)->where('deleted', '0')->select('id as value_id', "value_$request->lang as value", 'parent_id')->get();
+                if (count($optionValues) > 0) {
+                    $data['options'][$i]['type'] = 'select';
+                    $data['options'][$i]['values'] = $optionValues;
+                }
+            }
+        }
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
+        return response()->json($response, 200);
+    }
+
+    // get sub options by main options
+    public function getSubOptionsByMainOptions(Request $request)
+    {
+        $lang = $request->lang;
+        $validator = Validator::make($request->all(), [
+            'options' => 'required|array',
+            'values' => 'required|array'
+        ]);
+
+        if ($validator->fails()) {
+            $response = APIHelpers::createApiResponse(true, 406, 'بعض الحقول مفقودة', 'بعض الحقول مفقودة', null, $request->lang);
+            return response()->json($response, 406);
+        }
+
+        $data['options'] = Category_option::whereIn('parent_id', $request->options)->where('deleted', '0')->select('id as option_id', "title_$request->lang as title", 'is_required', 'parent_id')->get();
+        // dd($data['options']);
+        if (count($data['options']) > 0) {
+            for ($i = 0; $i < count($data['options']); $i++) {
+                $data['options'][$i]['type'] = 'input';
+                $optionValues = Category_option_value::where('option_id', $data['options'][$i]['option_id'])->whereIn('parent_id', $request->values)->where('deleted', '0')->select('id as value_id', "value_$request->lang as value", 'parent_id')->get();
                 if (count($optionValues) > 0) {
                     $data['options'][$i]['type'] = 'select';
                     $data['options'][$i]['values'] = $optionValues;
@@ -1037,6 +1123,5 @@ class CategoryController extends Controller
         $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
         return response()->json($response, 200);
     }
-
 
 }
