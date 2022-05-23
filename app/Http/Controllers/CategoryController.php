@@ -737,7 +737,7 @@ class CategoryController extends Controller
     public function get_category_products(Request $request) {
         $lang = $request->lang;
         $validator = Validator::make($request->all(), [
-            'category_id' => 'required|array'
+            'category_id' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -755,6 +755,14 @@ class CategoryController extends Controller
             $products->whereHas('Features', function ($q) use ($request) {
                 $q->whereIn('target_id', $request->options);
             });
+        }
+
+        if($request->has('price_from') && $request->has('price_to')){
+            if ($request->price_from == 0 && $request->price_to == 0) {
+
+            }else {
+                $products->whereBetween('price', [$request->price_from, $request->price_to]);
+            }
         }
 
         $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->where('publish', 'Y')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
