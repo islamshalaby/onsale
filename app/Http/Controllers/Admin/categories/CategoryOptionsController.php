@@ -30,7 +30,8 @@ class CategoryOptionsController extends AdminController{
                 'image' => 'required',
                 'title_ar' => 'required',
                 'title_en' => 'required',
-                'is_required' => 'required'
+                'is_required' => 'required',
+                'filter' => ''
             ]);
 
         $image_name = $request->file('image')->getRealPath();
@@ -40,6 +41,7 @@ class CategoryOptionsController extends AdminController{
         $image_format = $imagereturned['format'];
         $image_new_name = $image_id.'.'.$image_format;
         $data['image'] = $image_new_name ;
+        $data['filter'] = isset($data['filter']) ? 1 : 0;
         Category_option::create($data);
         session()->flash('success', trans('messages.added_s'));
         return back();
@@ -74,7 +76,8 @@ class CategoryOptionsController extends AdminController{
             [
                 'title_ar' => 'required',
                 'title_en' => 'required',
-                'is_required' => 'required'
+                'is_required' => 'required',
+                'filter' => ''
             ]);
 
         if($request->image){
@@ -89,7 +92,7 @@ class CategoryOptionsController extends AdminController{
         $input['title_ar'] = $request->title_ar;
         $input['title_en'] = $request->title_en;
         $input['is_required'] = $request->is_required;
-
+        $input['filter'] = isset($data['filter']) ? 1 : 0;
         Category_option::where('id',$request->id)->update($input);
         session()->flash('success', trans('messages.updated_s'));
         if($selected_option->cat_type == 'category'){

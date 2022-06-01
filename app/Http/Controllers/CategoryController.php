@@ -948,7 +948,11 @@ class CategoryController extends Controller
     // get category options
     public function getMainCategoryOptions(Request $request, Category $category)
     {
-        $data['options'] = Category_option::where('cat_id', $category['id'])->where('cat_type', 'category')->where('deleted', '0')->where('parent_id', 0)->select('id as option_id', "title_$request->lang as title", 'is_required', 'parent_id')->get();
+        $data['options'] = Category_option::select('id as option_id', "title_$request->lang as title", 'is_required', 'parent_id', 'filter')->where('cat_id', $category['id'])->where('cat_type', 'category')->where('deleted', '0')->where('parent_id', 0);
+        if ($request->filter && $request->filter == true) {
+            $data['options'] = $data['options']->where('filter', 1);
+        }
+        $data['options'] = $data['options']->get();
             
         if (count($data['options']) > 0) {
             for ($i = 0; $i < count($data['options']); $i++) {

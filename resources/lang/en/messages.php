@@ -331,7 +331,8 @@
         "show_buy" => "Show Buy Button",
         "category_has_products_add" => "One of these categories level has products",
         "sub_cat_options" => "Sub options",
-        "main_value" => "Main value"
+        "main_value" => "Main value",
+        "show_as_filter" => "Show as a filter"
 
     ];
 ?>

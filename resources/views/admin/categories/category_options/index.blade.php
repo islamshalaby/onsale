@@ -121,6 +121,17 @@
                                 <option value="n">{{ __('messages.choice') }}</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <div class="form-check pl-0">
+                                <div class="custom-control custom-checkbox checkbox-info">
+                                    <input type="checkbox" class="custom-control-input"
+                                           name="filter"
+                                           id="filter">
+                                    <label class="custom-control-label"
+                                           for="filter">{{ __('messages.show_as_filter') }}</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button class="btn" data-dismiss="modal"><i

@@ -53,6 +53,17 @@
                                 <option value="n" @if($data->is_required == 'n')selected @endif >{{ __('messages.choice') }}</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <div class="form-check pl-0">
+                                <div class="custom-control custom-checkbox checkbox-info">
+                                    <input type="checkbox" class="custom-control-input" {{ $data->filter == 1 ? 'checked' : '' }}
+                                           name="filter"
+                                           id="filter">
+                                    <label class="custom-control-label"
+                                           for="filter">{{ __('messages.show_as_filter') }}</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <input type="submit" value="{{ __('messages.edit') }}" class="btn btn-primary">
                 </form>
