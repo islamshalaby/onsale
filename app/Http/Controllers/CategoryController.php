@@ -951,9 +951,7 @@ class CategoryController extends Controller
         $data['options'] = Category_option::select('id as option_id', "title_$request->lang as title", 'is_required', 'parent_id', 'filter')->where('cat_id', $category['id'])->where('cat_type', 'category')->where('deleted', '0')->where('parent_id', 0);
         if (isset($request->filter) && $request->filter == "true") {
             $data['options'] = $data['options']->where('filter', 1);
-        }else {
-			$data['options'] = $data['options']->where('filter', 0);
-		}
+        }
         $data['options'] = $data['options']->get();
             
         if (count($data['options']) > 0) {
