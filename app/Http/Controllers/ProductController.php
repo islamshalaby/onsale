@@ -1399,6 +1399,7 @@ class ProductController extends Controller
             ->with('Area_api')
             ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id', 'sub_category_four_id', 'sub_category_five_id', 'title', 'price', 'description', 'main_image', 'city_id', 'area_id', 'share_location', 'latitude', 'longitude')
             ->first();
+        
         $data['ad']['price'] = (string)$data['ad']['price'];
         if ($data['ad']['sub_category_id'] == null) {
             $data['ad']['sub_category_id'] = 0;
@@ -1493,7 +1494,7 @@ class ProductController extends Controller
             ->select('id', 'type', 'product_id', 'target_id', 'option_id')
             ->orderBy('option_id', 'asc')
             ->get();
-
+        
         foreach ($features as $key => $feature) {
             if ($feature->type == 'manual') {
                 $features[$key]['type'] = 'input';
@@ -1508,7 +1509,7 @@ class ProductController extends Controller
                 }
             }
         }
-
+        
         $data['features'] = $features;
         $response = APIHelpers::createApiResponse(false, 200, 'data shown', 'تم أظهار البيانات', $data, $request->lang);
         return response()->json($response, 200);
