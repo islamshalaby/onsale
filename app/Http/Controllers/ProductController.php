@@ -1507,6 +1507,7 @@ class ProductController extends Controller
                 else {
                     $features[$key]['value'] = $target_data->value_en;
                 }
+                $features[$key]['value_id'] = (int)$feature->target_id;
             }
         }
         
